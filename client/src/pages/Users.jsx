@@ -5,6 +5,8 @@ import { IoMdAdd } from "react-icons/io";
 import { summary } from "../assets/data";
 import { getInitials } from "../utils";
 import clsx from "clsx";
+import AddUser from "../components/AddUser";
+import ConfirmatioDialog, { UserAction } from "../components/Dialogs";
 
 
 
@@ -14,6 +16,18 @@ const Users = () => {
   const [openAction, setOpenAction] = useState(false);
   const [selected, setSelected] = useState(null);
 
+  const userActionHandler = () => {};
+  const deleteHandler = () => {};
+
+  const deleteClick = (id) => {
+    setSelected(id);
+    setOpenDialog(true);
+  };
+
+  const editClick = (el) => {
+    setSelected(el);
+    setOpen(true);
+  };
   
 
   const TableHeader = () => (
@@ -62,14 +76,14 @@ const Users = () => {
           className='text-blue-600 hover:text-blue-500 font-semibold sm:px-0'
           label='Edit'
           type='button'
-          //onClick={() => editClick(user)}
+          onClick={() => editClick(user)}
         />
 
         <Button
           className='text-red-700 hover:text-red-500 font-semibold sm:px-0'
           label='Delete'
           type='button'
-         // onClick={() => deleteClick(user?._id)}
+          onClick={() => deleteClick(user?._id)}
         />
       </td>
     </tr>
@@ -101,7 +115,25 @@ const Users = () => {
           </div>
         </div>
       </div>
+      
+      <AddUser
+        open={open}
+        setOpen={setOpen}
+        userData={selected}
+        key={new Date().getTime().toString()}
+      />
 
+      <ConfirmatioDialog
+        open={openDialog}
+        setOpen={setOpenDialog}
+        onClick={deleteHandler}
+      />
+
+      <UserAction
+        open={openAction}
+        setOpen={setOpenAction}
+        onClick={userActionHandler}
+      />
      
     </>
   );
