@@ -3,7 +3,7 @@ import { createJWT } from "../utils/index.js";
 
 export const registerUser = async (req, res) => {
     try {
-        const { name, eamil, password, isAdmin, role, title } = req.body;
+        const { name, email, password, isAdmin, role, title } = req.body;
 
         const userExist = await User.findOne({ email });
 
