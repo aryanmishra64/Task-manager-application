@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import moment  from "moment";
-import React from "react";
+import React, { useEffect } from "react";
 import { FaNewspaper } from "react-icons/fa";
 import { FaArrowsToDot } from "react-icons/fa6";
 import { LuClipboardEdit } from "react-icons/lu";
@@ -15,6 +15,7 @@ import Loading from "../components/Loader";
 import UserInfo from "../components/UserInfo";
 import { useGetDashboardStatsQuery } from "../redux/slices/api/taskApiSlice";
 import { BGS, PRIOTITYSTYELS, TASK_TYPE, getInitials } from "../utils";
+import { useSelector } from "react-redux";
 
 const TaskTable = ({ tasks }) => {
   const ICONS = {
@@ -147,7 +148,14 @@ const UserTable = ({ users }) => {
   );
 };
 const Dashboard = () => {
-  const { data, isLoading } = useGetDashboardStatsQuery();
+  const { user } = useSelector((state) => state.auth);
+  const { data, isLoading, refetch } = useGetDashboardStatsQuery(user?._id);
+
+  useEffect(() => {
+    if (user?._id) {
+      refetch(); 
+    }
+  }, [user?._id, refetch]);
 
   if(isLoading)
     return (
@@ -159,7 +167,7 @@ const Dashboard = () => {
 
 
 
-
+  console.log(data);
   const totals = data?.tasks;
 
 
@@ -174,21 +182,21 @@ const Dashboard = () => {
     {
       _id: "2",
       label: "COMPLTED TASK",
-      total: totals["completed"] || 0,
+      total: totals?.["completed"] || 0,
       icon: <MdAdminPanelSettings />,
       bg: "bg-[#0f766e]",
     },
     {
       _id: "3",
       label: "TASK IN PROGRESS ",
-      total: totals["in progress"] || 0,
+      total: totals?.["in progress"] || 0,
       icon: <LuClipboardEdit />,
       bg: "bg-[#f59e0b]",
     },
     {
       _id: "4",
       label: "TODOS",
-      total: totals["todo"],
+      total: totals?.["todo"],
       icon: <FaArrowsToDot />,
       bg: "bg-[#be185d]" || 0,
     },

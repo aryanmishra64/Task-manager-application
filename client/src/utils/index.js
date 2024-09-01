@@ -25,7 +25,13 @@ export function dateFormatter(dateString) {
 }
 
 export function getInitials(fullName) {
-  const names = fullName.split(" ");
+  if (!fullName || typeof fullName !== 'string') {
+    return ''; // Handle cases where fullName is undefined, null, or not a string
+  }
+
+  const names = fullName.split(" ").filter(Boolean); // Filter out any empty strings
+
+  if (names.length === 0) return ''; // Return empty if no names are found
 
   const initials = names.slice(0, 2).map((name) => name[0].toUpperCase());
 
@@ -33,6 +39,7 @@ export function getInitials(fullName) {
 
   return initialsStr;
 }
+
 
 export const PRIOTITYSTYELS = {
   high: "text-red-600",

@@ -4,13 +4,16 @@ import User from "../models/user.js";
 const protectRoute = async (req, res, next) => {
   try {
     let token = req.cookies?.token;
+   
 
     if (token) {
       const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+      
 
       const resp = await User.findById(decodedToken.userId).select(
         "isAdmin email"
       );
+      
 
       req.user = {
         email: resp.email,
@@ -33,6 +36,7 @@ const protectRoute = async (req, res, next) => {
 };
 
 const isAdminRoute = (req, res, next) => {
+  console.log('User in isAdminRoute:', req.user);
   if (req.user && req.user.isAdmin) {
     next();
   } else {

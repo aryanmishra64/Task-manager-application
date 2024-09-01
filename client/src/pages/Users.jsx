@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Title from "../components/Title";
 import Button from "../components/Button";
 import { IoMdAdd } from "react-icons/io";
@@ -9,6 +9,7 @@ import AddUser from "../components/AddUser";
 import ConfirmatioDialog, { UserAction } from "../components/Dialogs";
 import { useDeleteUserMutation, useGetTeamListQuery, useUserActionMutation } from "../redux/slices/api/userApiSlice";
 import { toast } from "sonner";
+import { useSelector } from "react-redux";
 
 
 
@@ -17,10 +18,21 @@ const Users = () => {
   const [open, setOpen] = useState(false);
   const [openAction, setOpenAction] = useState(false);
   const [selected, setSelected] = useState(null);
+  const [userList, setUserList] = useState([]);
 
-  const { data, isLoading, refetch } = useGetTeamListQuery();
+  const { user } = useSelector((state) => state.auth);
+  console.log("Logged-in User:", user);
+
+  const { data, isLoading, refetch } = useGetTeamListQuery(user?._id);
  const [deleteUser] = useDeleteUserMutation();
  const [userAction] = useUserActionMutation();
+
+ useEffect(() => {
+  if (data) {
+    setUserList(data);
+  }
+}, [data]);
+
   
   const userActionHandler = async () => {
     try {
@@ -75,6 +87,10 @@ const Users = () => {
     setSelected(el);
     setOpenAction(true);
   };
+  const handleAddUserSuccess = () => {
+    refetch(); 
+  };
+
   const TableHeader = () => (
     <thead className='border-b border-gray-300'>
       <tr className='text-black text-left'>
@@ -166,6 +182,7 @@ const Users = () => {
         setOpen={setOpen}
         userData={selected}
         key={new Date().getTime().toString()}
+        onSuccess={handleAddUserSuccess}
       />
 
       <ConfirmatioDialog

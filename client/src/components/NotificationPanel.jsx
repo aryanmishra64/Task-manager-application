@@ -1,6 +1,6 @@
 import { Popover, Transition } from "@headlessui/react";
 import moment from "moment";
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { BiSolidMessageRounded } from "react-icons/bi";
 import { HiBellAlert } from "react-icons/hi2";
 import { IoIosNotificationsOutline } from "react-icons/io";
@@ -55,9 +55,28 @@ const ICONS = {
 const NotificationPanel = () => {
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState(null);
+  const [notifications, setNotifications] = useState([]);
 
      const { data, refetch } = useGetNotificationsQuery();
      const [markAsRead] = useMarkNotiAsReadMutation();
+
+     useEffect(() => {
+      if (data) {
+        setNotifications(data); 
+      }
+    }, [data]);
+  
+    useEffect(() => {
+      const interval = setInterval(() => {
+        refetch(); 
+      }, 10000);
+  
+      return () => clearInterval(interval); 
+    }, [refetch]);
+
+
+  
+  
 
   const readHandler = async (type,id) => {
     await markAsRead({ type, id }).unwrap();
@@ -87,9 +106,9 @@ const NotificationPanel = () => {
         <Popover.Button className='inline-flex items-center outline-none'>
           <div className='w-8 h-8 flex items-center justify-center text-gray-800 relative'>
             <IoIosNotificationsOutline className='text-2xl' />
-            {data?.length > 0 && (
+            {notifications.length  > 0 && (
               <span className='absolute text-center top-0 right-1 text-sm text-white font-semibold w-4 h-4 rounded-full bg-red-600'>
-                {data?.length}
+                  {notifications.length}
               </span>
             )}
           </div>
@@ -106,10 +125,10 @@ const NotificationPanel = () => {
         >
           <Popover.Panel className='absolute -right-16 md:-right-2 z-10 mt-5 flex w-screen max-w-max  px-4'>
             {({ close }) =>
-              data?.length > 0 && (
+              notifications.length > 0 && (
                 <div className='w-screen max-w-md flex-auto overflow-hidden rounded-3xl bg-white text-sm leading-6 shadow-lg ring-1 ring-gray-900/5'>
                   <div className='p-4'>
-                    {data?.slice(0, 5).map((item, index) => (
+                    {notifications.slice(0, 5).map((item, index) => (
                       <div
                         key={item._id + index}
                         className='group relative flex gap-x-4 rounded-lg p-4 hover:bg-gray-50'

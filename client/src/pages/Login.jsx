@@ -25,6 +25,8 @@ const Login = () => {
 
   const submitHandler = async (data) => {
     try {
+
+      localStorage.clear(); 
       const result = await login(data).unwrap();
 
       dispatch(setCredentials(result));
@@ -111,6 +113,14 @@ const Login = () => {
               className='w-full h-10 bg-blue-700 text-white rounded-full'
             />
               )}
+            </div>
+            <div className="text-center mt-4">
+              <p className="text-gray-600">Don't have an account?</p>
+              <Button
+                label="Sign Up"
+                className="w-full h-10 bg-gray-200 text-blue-700 rounded-full mt-2"
+                onClick={() => navigate("/sign-up")}
+              />
             </div>
           </form>
         </div>

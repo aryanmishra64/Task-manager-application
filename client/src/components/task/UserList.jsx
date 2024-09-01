@@ -6,22 +6,41 @@ import clsx from "clsx";
 import { getInitials } from "../../utils";
 import { MdCheck } from "react-icons/md";
 import { useGetTeamListQuery } from "../../redux/slices/api/userApiSlice";
+import { useSelector } from "react-redux";
 
 const UserList = ({ setTeam, team }) => {
-  const { data, isLoading } = useGetTeamListQuery();
+  const { user } = useSelector((state) => state.auth);
+
+  const { data, isLoading, refetch } = useGetTeamListQuery(user?._id, {
+    skip: !user?._id, 
+  });
   const [selectedUsers, setSelectedUsers] = useState([]);
 
   const handleChange = (el) => {
+    console.log("Selected Users on Change:", el); 
+    if (el && Array.isArray(el)) {
     setSelectedUsers(el);
-    setTeam(el?.map((u) => u._id));
+    setTeam(el.map((u) => u?._id).filter(Boolean));
+    }
   };
   useEffect(() => {
-    if (team?.length < 1) {
-      data && setSelectedUsers([data[0]]);
-    } else {
-      setSelectedUsers(team);
+    if (Array.isArray(data) && data.length > 0) {
+      if (team?.length < 1) {
+        setSelectedUsers([data[0]]);
+      } else {
+        setSelectedUsers(
+          team.map((id) => data.find((user) => user._id === id)).filter(Boolean)
+        );
+      }
     }
-  }, [isLoading]);
+  }, [data, team]);
+
+  useEffect(() => {
+    if (user) {
+      refetch();
+    }
+  }, [user, refetch]);
+
 
   return (
     <div>
@@ -34,7 +53,7 @@ const UserList = ({ setTeam, team }) => {
         <div className='relative mt-1'>
           <Listbox.Button className='relative w-full cursor-default rounded bg-white pl-3 pr-10 text-left px-3 py-2.5 2xl:py-3 border border-gray-300 sm:text-sm'>
             <span className='block truncate'>
-              {selectedUsers?.map((user) => user.name).join(", ")}
+              {selectedUsers?.map((user) => user?.name).join(", ")}
             </span>
 
             <span className='pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2'>
@@ -52,9 +71,9 @@ const UserList = ({ setTeam, team }) => {
             leaveTo='opacity-0'
           >
             <Listbox.Options className='z-50 absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black/5 focus:outline-none sm:text-sm'>
-              {data?.map((user, index) => (
+              {data?.map((user) => (
                 <Listbox.Option
-                  key={index}
+                  key={user._id}
                   className={({ active }) =>
                     `relative cursor-default select-none py-2 pl-10 pr-4. ${
                       active ? "bg-amber-100 text-amber-900" : "text-gray-900"

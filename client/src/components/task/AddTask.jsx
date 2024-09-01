@@ -18,7 +18,7 @@ const PRIORIRY = ["HIGH", "MEDIUM", "NORMAL", "LOW"];
 
 const uploadedFileURLs = [];
 
-const AddTask = ({ open, setOpen, task }) => {
+const AddTask = ({ open, setOpen, task, onTaskAdded }) => {
   const defaultValues = {
     title: task?.title || "",
     date: dateFormatter(task?.date || new Date()),
@@ -78,13 +78,17 @@ const AddTask = ({ open, setOpen, task }) => {
 
         toast.success(res?.message);
 
+        if (!task?._id) {
+          onTaskAdded(res?.task); 
+        }
+
         setTimeout(() => {
           setOpen(false);
         }, 500);
         
        } catch (error) {
-        console.log(err);
-        toast.error(err?.data?.message || err.error);
+        console.log(error);
+        toast.error(error?.data?.message || error.error);
         
        }
 

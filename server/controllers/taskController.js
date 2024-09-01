@@ -4,9 +4,15 @@ import User from "../models/user.js";
 
 export const createTask = async (req, res) => {
   try {
+
+    console.log("req.user:", req.user);
     const { userId } = req.user;
 
     const { title, team, stage, date, priority, assets } = req.body;
+
+    if (!team.includes(userId)) {
+      team.push(userId); 
+    }
 
     let text = "New task has been assigned to you";
     if (team?.length > 1) {
@@ -33,7 +39,10 @@ export const createTask = async (req, res) => {
       priority: priority.toLowerCase(),
       assets,
       activities: activity,
+      admin: userId,
     });
+
+    console.log("Created Task:", task); 
 
     await Notice.create({
       team,
@@ -126,32 +135,34 @@ export const postTaskActivity = async (req, res) => {
 export const dashboardStatistics = async (req, res) => {
   try {
     const { userId, isAdmin } = req.user;
+    console.log("isAdmin:", isAdmin);
+    console.log("userId:", userId);
+    const query = { isTrashed: false };
+    if (isAdmin) {
+      query.admin = userId; // Admin sees all tasks they created
+    } else {
+      query.team = userId; // Team members see tasks assigned to them
+    }
+    console.log("Query:", query);
+    // Fetch tasks only for the logged-in admin
+    const allTasks = await Task.find(query) // Use the query object here
+      .populate({
+        path: "team",
+        select: "name role title email",
+      })
+      .sort({ _id: -1 });
+      console.log(allTasks);
 
-    const allTasks = isAdmin
-      ? await Task.find({
-          isTrashed: false,
-        })
-          .populate({
-            path: "team",
-            select: "name role title email",
-          })
-          .sort({ _id: -1 })
-      : await Task.find({
-          isTrashed: false,
-          team: { $all: [userId] },
-        })
-          .populate({
-            path: "team",
-            select: "name role title email",
-          })
-          .sort({ _id: -1 });
-
-    const users = await User.find({ isActive: true })
+    // Fetch only the users created by the current admin
+    const users = await User.find({
+      createdBy: userId, // Assuming you track who created the user
+      isActive: true,
+    })
       .select("name title role isAdmin createdAt")
       .limit(10)
       .sort({ _id: -1 });
 
-    //   group task by stage and calculate counts
+    // Group tasks by stage and calculate counts
     const groupTaskks = allTasks.reduce((result, task) => {
       const stage = task.stage;
 
@@ -174,7 +185,7 @@ export const dashboardStatistics = async (req, res) => {
       }, {})
     ).map(([name, total]) => ({ name, total }));
 
-    // calculate total tasks
+    // Calculate total tasks
     const totalTasks = allTasks?.length;
     const last10Task = allTasks?.slice(0, 10);
 
@@ -197,15 +208,29 @@ export const dashboardStatistics = async (req, res) => {
   }
 };
 
+
 export const getTasks = async (req, res) => {
   try {
-    const { stage, isTrashed } = req.query;
+    const { stage, isTrashed, userId } = req.query;
+
+    
 
     let query = { isTrashed: isTrashed ? true : false };
 
     if (stage) {
       query.stage = stage;
     }
+
+    if (userId) {
+      query.$or = [
+        { admin: userId }, // Tasks created by the user
+        { team: userId }   // Tasks assigned to the user
+      ];
+    }
+
+    
+
+    console.log("Query:", query);
 
     let queryResult = Task.find(query)
       .populate({
@@ -215,6 +240,7 @@ export const getTasks = async (req, res) => {
       .sort({ _id: -1 });
 
     const tasks = await queryResult;
+    console.log("Tasks found:", tasks);
 
     res.status(200).json({
       status: true,

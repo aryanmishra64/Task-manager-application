@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FaList } from "react-icons/fa";
 import { MdGridView } from "react-icons/md";
 import { useParams } from "react-router-dom";
@@ -13,6 +13,8 @@ import { tasks } from "../assets/data";
 import Table from "../components/task/Table";
 import AddTask from "../components/task/AddTask";
 import { useGetAllTaskQuery } from "../redux/slices/api/taskApiSlice";
+import { useGetNotificationsQuery } from "../redux/slices/api/userApiSlice";
+import { useSelector } from "react-redux";
 
 const TABS = [
   { title: "Board View", icon: <MdGridView /> },
@@ -27,19 +29,45 @@ const TASK_TYPE = {
 
 const Tasks = () => {
   const params = useParams();
-
+  const [tasks, setTasks] = useState([]);
   const [selected, setSelected] = useState(0);
   const [open, setOpen] = useState(false);
+  const { user } = useSelector((state) => state.auth);
  
   
 
   const status = params?.status || "";
 
+  console.log("Frontend Query Parameters:", {
+    strQuery: status,
+    isTrashed: "",
+    search: "",
+    userId: user?._id,
+  });
+
+
   const {data, isLoading} = useGetAllTaskQuery({
     strQuery: status,
     isTrashed: "",
     search: "",
+    userId: user?._id,
   });
+
+  const { refetch: refetchNotifications } = useGetNotificationsQuery();
+
+  useEffect(() => {
+    console.log("Data fetched:", data);
+    if (data?.tasks) {
+      setTasks(data.tasks);
+    }
+  }, [data]);
+
+  
+  const handleTaskAdded = (newTask) => {
+    setTasks((prevTasks) => [...prevTasks, newTask]);
+    refetchNotifications();
+  };
+
 
   return isLoading ? (
     <div className='py-10'>
@@ -73,15 +101,15 @@ const Tasks = () => {
         )}
 
         {selected !== 1 ? (
-          <BoardView tasks={data?.tasks} />
+          <BoardView tasks={tasks} />
         ) : (
           <div className='w-full'>
-            <Table tasks={data?.tasks} />
+            <Table tasks={tasks} />
           </div>
         )}
       </Tabs>
 
-      <AddTask open={open} setOpen={setOpen} />
+      <AddTask open={open} setOpen={setOpen} onTaskAdded={handleTaskAdded} />
     </div>
   );
 };

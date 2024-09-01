@@ -18,12 +18,15 @@ const authSlice = createSlice({
         },
         logout: (state, action) => {
             state.user = null;
-            localStorage.removeItem("userInfo");
+      state.isSidebarOpen = false; // Reset other UI states if necessary
+      localStorage.removeItem("userInfo");
+      localStorage.clear(); // Clear all localStorage
+      window.location.reload(); // Reload the page to clear all state and start fresh
         },
         setOpenSidebar: (state, action) => {
             state.isSidebarOpen = action.payload;
         },
-
+       
     },
 });
 

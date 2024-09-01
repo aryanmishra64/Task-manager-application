@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   MdAttachFile,
   MdKeyboardArrowDown,
@@ -25,6 +25,20 @@ const ICONS = {
 const TaskCard = ({ task }) => {
   const { user } = useSelector((state) => state.auth);
   const [open, setOpen] = useState(false);
+  const [subTasks, setSubTasks] = useState(task.subTasks || []);
+
+  const handleSubTaskAdded = (newSubTask) => {
+    setSubTasks((prevSubTasks) => [...prevSubTasks, newSubTask]);
+  };
+  
+  
+  useEffect(() => {
+    if (subTasks.length) {
+      setSubTasks((prevTasks) =>
+        prevTasks.map((t) => (t._id === task._id ? { ...t, subTasks } : t))
+      );
+    }
+  }, [subTasks, setSubTasks, task._id]);
 
   return (
     <>
@@ -68,7 +82,7 @@ const TaskCard = ({ task }) => {
             </div>
             <div className='flex gap-1 items-center text-sm text-gray-600 '>
               <FaList />
-              <span>0/{task?.subTasks?.length}</span>
+              <span>0/{subTasks.length}</span>
             </div>
           </div>
 
@@ -88,20 +102,25 @@ const TaskCard = ({ task }) => {
         </div>
 
         {/* sub tasks */}
-        {task?.subTasks?.length > 0 ? (
+        {subTasks.length > 0 ? (
           <div className='py-4 border-t border-gray-200'>
-            <h5 className='text-base line-clamp-1 text-black'>
-              {task?.subTasks[0].title}
-            </h5>
-
-            <div className='p-4 space-x-8'>
-              <span className='text-sm text-gray-600'>
-                {formatDate(new Date(task?.subTasks[0]?.date))}
-              </span>
-              <span className='bg-blue-600/10 px-3 py-1 rounded0full text-blue-700 font-medium'>
-                {task?.subTasks[0].tag}
-              </span>
-            </div>
+            {subTasks.map((subTask, index) => (
+              subTask && ( 
+                <div key={index} className='py-2'>
+                  <h5 className='text-base line-clamp-1 text-black'>
+                    {subTask.title || 'Untitled'} 
+                  </h5>
+                  <div className='p-4 space-x-8'>
+                    <span className='text-sm text-gray-600'>
+                      {formatDate(new Date(subTask.date)) || 'No Date'} 
+                    </span>
+                    <span className='bg-blue-600/10 px-3 py-1 rounded-full text-blue-700 font-medium'>
+                      {subTask.tag || 'No Tag'} 
+                    </span>
+                  </div>
+                </div>
+              )
+            ))}
           </div>
         ) : (
           <>
@@ -122,7 +141,7 @@ const TaskCard = ({ task }) => {
           </button>
         </div>
       </div>
-      <AddSubTask open={open} setOpen={setOpen} id={task._id} />
+      <AddSubTask open={open} setOpen={setOpen} id={task._id} onSubTaskAdded={handleSubTaskAdded} />
 
     </>
   );

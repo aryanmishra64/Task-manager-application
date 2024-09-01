@@ -42,8 +42,11 @@ const taskSchema = new Schema(
       },
     ],
     assets: [String],
-    team: [{ type: Schema.Types.ObjectId, ref: "User" }],
+    team: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     isTrashed: { type: Boolean, default: false },
+    admin: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    
+
   },
   { timestamps: true }
 );

@@ -3,43 +3,59 @@ import User from "../models/user.js";
 import { createJWT } from "../utils/index.js";
 
 export const registerUser = async (req, res) => {
-    try {
-        const { name, email, password, isAdmin, role, title } = req.body;
+  try {
+    const { name, email, password, isAdmin, role, title, isSignup } = req.body;
+    const { userId } = req.query;
 
-        const userExist = await User.findOne({ email });
+      const userExist = await User.findOne({ email });
 
-        if(userExist) {
-            return res.status(400).json({
-                status: false,
-                message: "User already exists",
-            });
-        }
+      if(userExist) {
+          return res.status(400).json({
+              status: false,
+              message: "User already exists",
+          });
+      }
 
-        const user = await User.create({
-            name,
-            email,
-            password,
-            isAdmin,
-            role,
-            title,
-        });
+      let user;
+    if (isSignup) {
+      user = await User.create({
+        name,
+        email,
+        password,
+        isAdmin: true,
+        role: 'admin',
+        title,
+        createdBy: null,
+      });
+    
 
-        if(user) {
-            isAdmin ? createJWT(res, user._id) : null;
+      const token = createJWT(res, user._id);
 
-            user.password = undefined;
+      return res.status(201).json({
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        isAdmin: user.isAdmin,
+        role: user.role,
+        token,
+      });
+    } else {
+      user = await User.create({
+        name,
+        email,
+        password,
+        isAdmin: false,  
+        role,
+        title,
+        createdBy: userId,  
+      });
 
-            res.status(201).json(user);
-        } else {
-            return res
-            .status(400)
-            .json({ status: false, message: "Invalid user data "});
-        }
-    } catch (error) {
-        console.log(error);
-        return res.status(400).json({ status: false, message: error.message });
-        
+      return res.status(201).json(user);
     }
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ status: false, message: error.message });
+  }
 };
 
 export const loginUser = async (req, res) => {
@@ -67,6 +83,7 @@ export const loginUser = async (req, res) => {
         createJWT(res, user._id);
   
         user.password = undefined;
+        console.log('User logged in:', user);
   
         res.status(200).json(user);
       } else {
@@ -96,9 +113,19 @@ export const loginUser = async (req, res) => {
 
   export const getTeamList = async (req, res) => {
     try {
-      const users = await User.find().select("name title role email isActive");
-  
-      res.status(200).json(users);
+
+      const { userId } = req.query;
+      console.log("Query User ID:", userId);
+
+      if (!userId) {
+        return res.status(400).json({ status: false, message: 'User ID is required' });
+      }
+
+
+      const users = await User.find({ createdBy: userId })
+      .select("name title role email isActive");
+
+res.status(200).json(users);
     } catch (error) {
       console.log(error);
       return res.status(400).json({ status: false, message: error.message });
@@ -114,7 +141,7 @@ export const loginUser = async (req, res) => {
         isRead: { $nin: [userId] },
       }).populate("task", "title");
   
-      res.status(201).json(notice);
+      res.status(200).json(notice);
     } catch (error) {
       console.log(error);
       return res.status(400).json({ status: false, message: error.message });
@@ -172,13 +199,13 @@ export const loginUser = async (req, res) => {
         );
       } else {
         await Notice.findOneAndUpdate(
-          { _id: id, isRead: { $nin: [userId] } },
+          { _id: id,  team: userId, isRead: { $nin: [userId] } },
           { $push: { isRead: userId } },
           { new: true }
         );
       }
   
-      res.status(201).json({ status: true, message: "Done" });
+      res.status(200).json({ status: true, message: "Done" });
     } catch (error) {
       console.log(error);
       return res.status(400).json({ status: false, message: error.message });

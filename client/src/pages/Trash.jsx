@@ -15,6 +15,7 @@ import ConfirmatioDialog from "../components/Dialogs";
 import { useDeleteRestoreTaskMutation, useGetAllTaskQuery } from "../redux/slices/api/taskApiSlice";
 import Loading from "../components/Loader";
 import { toast } from "sonner";
+import { useSelector } from "react-redux";
 
 
 const ICONS = {
@@ -30,10 +31,13 @@ const Trash = () => {
   const [type, setType] = useState("delete");
   const [selected, setSelected] = useState("");
 
+  const { user } = useSelector((state) => state.auth);
+
   const { data, isLoading, refetch } = useGetAllTaskQuery({
     strQuery: "",
     isTrashed: "true",
     search: "",
+    userId: user?._id,
 
   });
 

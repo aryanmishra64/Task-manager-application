@@ -14,6 +14,7 @@ import { useDispatch, useSelector } from "react-redux";
 import Sidebar from "./components/Sidebar";
 import Navbar from "./components/Navbar";
 import { setOpenSidebar } from "./redux/slices/authSlice";
+import Signup from "./pages/Signup";
 
 
 function Layout() {
@@ -115,6 +116,7 @@ function App() {
         </Route>
 
         <Route path='/log-in' element={<Login />} />
+        <Route path="/sign-up" element={<Signup />} />
       </Routes>
       <Toaster richColors />
 

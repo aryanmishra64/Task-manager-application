@@ -7,15 +7,21 @@ import { apiSlice } from "../apiSlice";
  export const taskApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
         getDashboardStats: builder.query({
-            query: () => ({
-                url: `${TASKS_URL}/dashboard`,
+            query: (userId) => ({
+                url: `${TASKS_URL}/dashboard/${userId}`,
                 method: "GET",
                 credentials: "include",
+                
             }),
         }),
-        getAllTask: builder.query({
-            query: ({ strQuery, isTrashed, search }) => ({
-                url: `${TASKS_URL}?stage=${strQuery}&isTrashed=${isTrashed}&search=${search}`,
+        getAllTask: builder.query(
+            {
+            
+            query: ({ strQuery, isTrashed, search, userId }) => (
+                
+                {
+                
+                url: `${TASKS_URL}?stage=${strQuery}&isTrashed=${isTrashed}&search=${search}&userId=${userId}`,
                 method: "GET",
                 credentials: "include",
             }),

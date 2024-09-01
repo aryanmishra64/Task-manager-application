@@ -6,7 +6,7 @@ import Button from "../Button";
 import { useCreateSubTaskMutation } from "../../redux/slices/api/taskApiSlice";
 import { toast } from "sonner";
 
-const AddSubTask = ({ open, setOpen, id }) => {
+const AddSubTask = ({ open, setOpen, id, onSubTaskAdded }) => {
   const {
     register,
     handleSubmit,
@@ -18,14 +18,21 @@ const AddSubTask = ({ open, setOpen, id }) => {
   const handleOnSubmit = async (data) => {
      try {
        const res = await addSbTask({ data, id }).unwrap();
-       toast.success(res?.message);
-       setTimeout(() => {
-         setOpen(false);
-      }, 500);
-     } catch (err) {
-       console.log(err);
-       toast.error(err?.data?.message || err.error);
-     }
+       console.log("API Response:", JSON.stringify(res, null, 2));
+       if (res?.status) {
+        
+        onSubTaskAdded(data);
+        toast.success(res.message);
+        setTimeout(() => {
+          setOpen(false);
+        }, 500);
+      } else {
+        toast.error("Failed to add subtask");
+      }
+    } catch (err) {
+      console.log("Error:", err);
+      toast.error(err?.data?.message || err.error || "An error occurred");
+    }
   };
 
   return (
