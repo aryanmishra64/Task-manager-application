@@ -17,7 +17,7 @@ const app = express();
 
 app.use (
     cors({
-        origin: ["https://aryan-task-manager.netlify.app"],
+        origin: ["https://aryan-task-manager-app.netlify.app"],
         methods: ["GET", "POST", "PUT", "DELETE"],
         credentials: true,
     })
